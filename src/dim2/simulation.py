@@ -31,14 +31,12 @@ class Simulation:
         y_u = src_y + n if n < (world_height - src_y) else world_height - 1
 
         # vector operations for high single thread performance
-        fac = (deltat / (delta * self._mu[x_l:x_r, y_d:y_u]))
-        self._Hy[x_l:x_r, y_d:y_u] = self._Hy[x_l:x_r, y_d:y_u] + fac * (
-                self._Ez[x_l + 1:x_r + 1, y_d:y_u] - self._Ez[x_l:x_r, y_d:y_u])
-        self._Hx[x_l:x_r, y_d:y_u] = self._Hx[x_l:x_r, y_d:y_u] - fac * (
-                self._Ez[x_l:x_r, y_d + 1:y_u + 1] - self._Ez[x_l:x_r, y_d:y_u])
+        fac1 = (deltat / (delta * self._mu[x_l:x_r, y_d:y_u]))
+        self._Hy[x_l:x_r, y_d:y_u] += fac1 * (self._Ez[x_l + 1:x_r + 1, y_d:y_u] - self._Ez[x_l:x_r, y_d:y_u])
+        self._Hx[x_l:x_r, y_d:y_u] -= fac1 * (self._Ez[x_l:x_r, y_d + 1:y_u + 1] - self._Ez[x_l:x_r, y_d:y_u])
 
         fac2 = deltat / (delta * self._epsilon[x_l + 1:x_r + 1, y_d + 1:y_u + 1])
-        self._Ez[x_l + 1:x_r + 1, y_d + 1:y_u + 1] = self._Ez[x_l + 1:x_r + 1, y_d + 1:y_u + 1] + fac2 * (
+        self._Ez[x_l + 1:x_r + 1, y_d + 1:y_u + 1] += fac2 * (
                 self._Hy[x_l + 1:x_r + 1, y_d + 1:y_u + 1] - self._Hy[x_l:x_r, y_d + 1:y_u + 1] -
                 self._Hx[x_l + 1:x_r + 1, y_d + 1:y_u + 1] + self._Hx[x_l + 1:x_r + 1, y_d:y_u]
         )
