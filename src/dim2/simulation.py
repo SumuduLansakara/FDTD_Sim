@@ -24,11 +24,10 @@ class Simulation:
         """ update single frame of the simulation """
         # print("frame: {}".format(n))
 
-        # stay within the boundary
-        x_l = src_x - n if n <= src_x else 0
-        x_r = src_x + n if n < (world_width - src_x) else world_width - 1
-        y_d = src_y - n if n <= src_y else 0
-        y_u = src_y + n if n < (world_height - src_y) else world_height - 1
+        x_l = 0
+        x_r = world_width - 2
+        y_d = 0
+        y_u = world_height - 2
 
         # vector operations for high single thread performance
         fac1 = (deltat / (delta * self._mu[x_l:x_r, y_d:y_u]))
