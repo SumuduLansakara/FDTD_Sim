@@ -1,11 +1,7 @@
 # world dimensions
-world_width = 500
-world_height = 500
+world_width = 100
+world_height = 100
 duration = 200
-
-# source coordinates
-src_x = 250
-src_y = 250
 
 epsilon0 = 1  # permittivity
 mu0 = 1  # permeability
