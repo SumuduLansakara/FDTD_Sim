@@ -65,7 +65,7 @@ class Simulation:
             print("update mode = parallel")
             self._engine = parallel_pthread
         else:
-            raise NotImplementedError
+            raise NotImplementedError("Invalid update mode {}".format(update_mode))
         self._engine.prepare(self)
 
     def _start_animation_loop(self):

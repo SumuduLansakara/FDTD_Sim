@@ -53,13 +53,13 @@ def update(simulation, n: int) -> matplotlib.image.AxesImage:
 
 def _start_update_Hy_loop(simulation):
     while True:
-        if _update_hy_event.is_set():
-            simulation._update_Hy()
-            _update_hy_event.clear()
+        _update_hy_event.wait()
+        simulation._update_Hy()
+        _update_hy_event.clear()
 
 
 def _start_update_Hx_loop(simulation):
     while True:
-        if _update_hx_event.is_set():
-            simulation._update_Hx()
-            _update_hx_event.clear()
+        _update_hx_event.wait()
+        simulation._update_Hx()
+        _update_hx_event.clear()

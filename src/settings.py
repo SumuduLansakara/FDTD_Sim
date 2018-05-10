@@ -1,6 +1,6 @@
 # world dimensions
-world_width = 100
-world_height = 100
+world_width = 300
+world_height = 300
 duration = 200
 
 epsilon0 = 1  # permittivity
@@ -18,4 +18,4 @@ delta_t = S * delta_xy / c
 # serial_naive = 0
 # serial_vectorized = 1
 # parallel_pthread = 2
-update_mode = 1
+update_mode = 2
