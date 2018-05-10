@@ -68,7 +68,7 @@ class Simulation:
             raise NotImplementedError
         self._engine.prepare(self)
 
-    def _visualize(self):
+    def _start_animation_loop(self):
         """ Start animation loop """
         fig = plt.figure()
         self._im = plt.imshow(self._Ez, cmap='gist_gray_r', vmin=0, vmax=1)
@@ -80,4 +80,5 @@ class Simulation:
         self._init_material()
         self._init_fields()
         self._init_engine()
-        self._visualize()
+        self._start_animation_loop()
+        self._engine.finalize()

@@ -5,6 +5,10 @@ def prepare(simulation):
     pass
 
 
+def finalize():
+    pass
+
+
 def update(self, n: int) -> matplotlib.image.AxesImage:
     """ Update single frame of the simulation """
     # vector operations for high single thread performance
