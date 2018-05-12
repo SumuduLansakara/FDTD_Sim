@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.figure
 import matplotlib.image
 import matplotlib.pyplot as plt
@@ -39,7 +41,9 @@ class Simulation:
         self._engine.init_fields()
 
     def _update(self, n: int):
+        time1 = time.time()
         self._engine.update(n)
+        print((time.time() - time1) * 1000)
         self._im.set_data(self._engine.Ez)
         return self._im
 
