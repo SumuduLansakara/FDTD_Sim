@@ -15,16 +15,14 @@ _mpi_size: int = None
 _mpi_rank: int = None
 
 
-def init_mpi():
-    global _mpi_comm, _mpi_rank, _mpi_size
+def init():
+    global _mpi_comm, _mpi_rank, _mpi_size, _engine
+    # init mpi
     _mpi_comm = MPI.COMM_WORLD
     _mpi_size = _mpi_comm.Get_size()
     _mpi_rank = _mpi_comm.Get_rank()
-
-
-def init_engine():
-    global _engine
-    _engine = SerialVectorEngine()
+    # init update engine
+    _engine = SerialVectorEngine(_mpi_comm, _mpi_size, _mpi_rank)
     _engine.init()
 
 
@@ -46,8 +44,7 @@ def _update(n: int):
 
 def start():
     """ Initialize parameters and start animation """
-    init_mpi()
-    init_engine()
+    init()
     start_animation_loop()
 
 
