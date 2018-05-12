@@ -1,3 +1,4 @@
+import matplotlib.figure
 import matplotlib.image
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,6 +24,7 @@ class Simulation:
         self._src_y: int = None
 
         # plot
+        self._figure: matplotlib.figure.Figure = None
         self._im: matplotlib.image.AxesImage = None
 
         # pre-calculated factors
@@ -55,14 +57,18 @@ class Simulation:
 
     def _init_engine(self):
         """ Initialize field update method depending on the setting """
+        self._figure = plt.figure()
         if update_mode == 0:
             print("update mode = serial_naive")
+            self._figure.suptitle("serial_naive")
             self._engine = serial_naive
         elif update_mode == 1:
             print("update mode = serial_vectorized")
+            self._figure.suptitle("serial_vector")
             self._engine = serial_vector
         elif update_mode == 2:
             print("update mode = parallel")
+            self._figure.suptitle("parallel_pthread")
             self._engine = parallel_pthread
         else:
             raise NotImplementedError("Invalid update mode {}".format(update_mode))
@@ -70,9 +76,8 @@ class Simulation:
 
     def _start_animation_loop(self):
         """ Start animation loop """
-        fig = plt.figure()
         self._im = plt.imshow(self._Ez, cmap='gist_gray_r', vmin=0, vmax=1)
-        anim = animation.FuncAnimation(fig, lambda n: self._engine.update(self, n), interval=50)
+        anim = animation.FuncAnimation(self._figure, lambda n: self._engine.update(self, n), interval=50)
         plt.show()
 
     def start(self):
