@@ -27,12 +27,16 @@ class SerialVectorEngine:
     def Ez(self):
         return self._Ez
 
-    def init_material(self):
+    def init(self):
+        self._init_material()
+        self._init_fields()
+
+    def _init_material(self):
         """ Set uniform permittivity and permeability for homogeneous material """
         self._epsilon = epsilon0 * np.ones((world_width, world_height))
         self._mu = mu0 * np.ones((world_width, world_height))
 
-    def init_fields(self):
+    def _init_fields(self):
         """ Set initial electric and magnetic field values """
         self._Ez = np.zeros((world_width, world_height))
         self._src_x = world_width // 2
@@ -40,14 +44,10 @@ class SerialVectorEngine:
         self._Hy = np.zeros((world_width, world_height))
         self._Hx = np.zeros((world_width, world_height))
 
-    def pre_update(self):
-        pass
-
     def update(self, n: int):
         """ Update single frame of the simulation """
         # vector operations for high single thread performance
         # update H fields
-
         self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
         self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
 
@@ -56,9 +56,6 @@ class SerialVectorEngine:
 
         # input from source
         self._Ez[self._src_x, self._src_y] = 1
-
-    def post_update(self):
-        pass
 
     def _update_Hx(self):
         for y in range(world_height - 1):
