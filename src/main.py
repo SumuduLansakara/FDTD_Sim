@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.figure
 import matplotlib.image
 import matplotlib.pyplot as plt
@@ -38,7 +40,9 @@ def start_animation_loop():
 
 def _update(_n: int):
     global _im
+    time1 = time.time()
     _engine.update()
+    print((time.time() - time1) * 1000, flush=True)
     _im.set_data(_engine.Ez)
     return _im
 
