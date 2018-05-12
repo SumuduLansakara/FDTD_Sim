@@ -57,12 +57,10 @@ class SerialVectorEngine:
         # update H fields
         if self._mpi_rank == 0:
             self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
-            self._mpi_comm.Recv(self._Hy, 1, 0)
-            self._mpi_comm.Send(self._Hx, 1, 0)
+            self._mpi_comm.Sendrecv(self._Hx, 1, recvbuf=self._Hy)
         elif self._mpi_rank == 1:
             self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
-            self._mpi_comm.Send(self._Hy, 0, 0)
-            self._mpi_comm.Recv(self._Hx, 0, 0)
+            self._mpi_comm.Sendrecv(self._Hy, 0, recvbuf=self._Hx)
 
         # update E fields
         self._Ez[1:, 1:] += self._f_Ez * (self._Hy[1:, 1:] - self._Hy[:-1, 1:] - self._Hx[1:, 1:] + self._Hx[1:, :-1])
