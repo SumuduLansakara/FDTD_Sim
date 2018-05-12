@@ -1,59 +1,22 @@
 import matplotlib.figure
 import matplotlib.image
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib import animation
 
-from dim2.engine import parallel_pthread, serial_naive, serial_vector
+from dim2.engine.base_engine import BaseEngine
+from dim2.engine.parallel_pthread import PthreadEngine
+from dim2.engine.serial_naive import SerialNaiveEngine
+from dim2.engine.serial_vector import SerialVectorEngine
 from settings import *
 
 
 class Simulation:
     def __init__(self):
-        # material properties
-        self._epsilon: np.ndarray = None
-        self._mu: np.ndarray = None
-
-        # fields
-        self._Ez: np.ndarray = None
-        self._Hy: np.ndarray = None
-        self._Hx: np.ndarray = None
-
-        # source
-        self._src_x: int = None
-        self._src_y: int = None
-
         # plot
         self._figure: matplotlib.figure.Figure = None
         self._im: matplotlib.image.AxesImage = None
 
-        # pre-calculated factors
-        self._f_Hy: float = delta_t / (delta_xy * mu0)
-        self._f_Hx: float = delta_t / (delta_xy * mu0)
-        self._f_Ez: float = delta_t / (delta_xy * epsilon0)
-
-        self._engine = None
-
-    def _update_Hx(self):
-        for y in range(world_height - 1):
-            self._Hx[:-1, y] -= self._f_Hx * (self._Ez[:-1, y + 1] - self._Ez[:-1, y])
-
-    def _update_Hy(self):
-        for x in range(world_width - 1):
-            self._Hy[x, :-1] += self._f_Hy * (self._Ez[x + 1, :-1] - self._Ez[x, :-1])
-
-    def _init_material(self):
-        """ Set uniform permittivity and permeability for homogeneous material """
-        self._epsilon = epsilon0 * np.ones((world_width, world_height))
-        self._mu = mu0 * np.ones((world_width, world_height))
-
-    def _init_fields(self):
-        """ Set initial electric and magnetic field values """
-        self._Ez = np.zeros((world_width, world_height))
-        self._src_x = world_width // 2
-        self._src_y = world_height // 2
-        self._Hy = np.zeros((world_width, world_height))
-        self._Hx = np.zeros((world_width, world_height))
+        self._engine: BaseEngine = None
 
     def _init_engine(self):
         """ Initialize field update method depending on the setting """
@@ -61,29 +24,34 @@ class Simulation:
         if update_mode == 0:
             print("update mode = serial_naive")
             self._figure.suptitle("serial_naive")
-            self._engine = serial_naive
+            self._engine = SerialNaiveEngine()
         elif update_mode == 1:
             print("update mode = serial_vectorized")
             self._figure.suptitle("serial_vector")
-            self._engine = serial_vector
+            self._engine = SerialVectorEngine()
         elif update_mode == 2:
             print("update mode = parallel")
             self._figure.suptitle("parallel_pthread")
-            self._engine = parallel_pthread
+            self._engine = PthreadEngine()
         else:
             raise NotImplementedError("Invalid update mode {}".format(update_mode))
-        self._engine.prepare(self)
+        self._engine.init_material()
+        self._engine.init_fields()
+
+    def _update(self, n: int):
+        self._engine.update(n)
+        self._im.set_data(self._engine.Ez)
+        return self._im
 
     def _start_animation_loop(self):
         """ Start animation loop """
-        self._im = plt.imshow(self._Ez, cmap='gist_gray_r', vmin=0, vmax=1)
-        anim = animation.FuncAnimation(self._figure, lambda n: self._engine.update(self, n), interval=50)
+        self._im = plt.imshow(self._engine.Ez, cmap='gist_gray_r', vmin=0, vmax=1)
+        anim = animation.FuncAnimation(self._figure, self._update, interval=50)
         plt.show()
 
     def start(self):
         """ Initialize parameters and start animation """
-        self._init_material()
-        self._init_fields()
         self._init_engine()
+        self._engine.pre_update()
         self._start_animation_loop()
-        self._engine.finalize()
+        self._engine.post_update()

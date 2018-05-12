@@ -18,4 +18,4 @@ delta_t = S * delta_xy / c
 # serial_naive = 0
 # serial_vectorized = 1
 # parallel_pthread = 2
-update_mode = 2
+update_mode = 1
