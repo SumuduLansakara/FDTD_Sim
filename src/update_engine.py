@@ -56,10 +56,10 @@ class SerialVectorEngine:
         self._mpi_comm.barrier()
         # update H fields
         if self._mpi_rank == 0:
-            self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
+            self._update_Hx_vector()
             self._mpi_comm.Sendrecv(self._Hx, 1, recvbuf=self._Hy)
         elif self._mpi_rank == 1:
-            self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
+            self._update_Hy_vector()
             self._mpi_comm.Sendrecv(self._Hy, 0, recvbuf=self._Hx)
 
         # update E fields
@@ -72,10 +72,16 @@ class SerialVectorEngine:
         while True:
             self.update()
 
-    def _update_Hx(self):
+    def _update_Hx_vector(self):
+        self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
+
+    def _update_Hy_vector(self):
+        self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
+
+    def _update_Hx_naive(self):
         for y in range(world_height - 1):
             self._Hx[:-1, y] -= self._f_Hx * (self._Ez[:-1, y + 1] - self._Ez[:-1, y])
 
-    def _update_Hy(self):
+    def _update_Hy_naive(self):
         for x in range(world_width - 1):
             self._Hy[x, :-1] += self._f_Hy * (self._Ez[x + 1, :-1] - self._Ez[x, :-1])
