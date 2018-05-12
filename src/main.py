@@ -21,6 +21,7 @@ def init():
     _mpi_comm = MPI.COMM_WORLD
     _mpi_size = _mpi_comm.Get_size()
     _mpi_rank = _mpi_comm.Get_rank()
+    assert _mpi_size == 2
     # init update engine
     _engine = SerialVectorEngine(_mpi_comm, _mpi_size, _mpi_rank)
     _engine.init()
@@ -35,17 +36,21 @@ def start_animation_loop():
     plt.show()
 
 
-def _update(n: int):
+def _update(_n: int):
     global _im
-    _engine.update(n)
+    _engine.update()
     _im.set_data(_engine.Ez)
     return _im
 
 
 def start():
     """ Initialize parameters and start animation """
+    global _mpi_rank, _engine
     init()
-    start_animation_loop()
+    if _mpi_rank == 0:
+        start_animation_loop()
+    else:
+        _engine.update_loop()
 
 
 if __name__ == '__main__':

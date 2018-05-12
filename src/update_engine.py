@@ -1,10 +1,16 @@
 import numpy as np
+from mpi4py import MPI
 
 from settings import world_height, world_width, epsilon0, mu0, delta_t, delta_xy
 
 
 class SerialVectorEngine:
-    def __init__(self):
+    def __init__(self, comm, size, rank):
+        # keep mpi status
+        self._mpi_comm: MPI.Intracomm = comm
+        self._mpi_size: int = size
+        self._mpi_rank: int = rank
+
         # material properties
         self._epsilon: np.ndarray = None
         self._mu: np.ndarray = None
@@ -44,18 +50,29 @@ class SerialVectorEngine:
         self._Hy = np.zeros((world_width, world_height))
         self._Hx = np.zeros((world_width, world_height))
 
-    def update(self, n: int):
+    def update(self):
         """ Update single frame of the simulation """
         # vector operations for high single thread performance
+        self._mpi_comm.barrier()
         # update H fields
-        self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
-        self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
+        if self._mpi_rank == 0:
+            self._Hx[:-1, :-1] -= self._f_Hx * (self._Ez[:-1, 1:] - self._Ez[:-1, :-1])
+            self._mpi_comm.Recv(self._Hy, 1, 0)
+            self._mpi_comm.Send(self._Hx, 1, 0)
+        elif self._mpi_rank == 1:
+            self._Hy[:-1, :-1] += self._f_Hy * (self._Ez[1:, :-1] - self._Ez[:-1, :-1])
+            self._mpi_comm.Send(self._Hy, 0, 0)
+            self._mpi_comm.Recv(self._Hx, 0, 0)
 
         # update E fields
         self._Ez[1:, 1:] += self._f_Ez * (self._Hy[1:, 1:] - self._Hy[:-1, 1:] - self._Hx[1:, 1:] + self._Hx[1:, :-1])
 
         # input from source
         self._Ez[self._src_x, self._src_y] = 1
+
+    def update_loop(self):
+        while True:
+            self.update()
 
     def _update_Hx(self):
         for y in range(world_height - 1):
