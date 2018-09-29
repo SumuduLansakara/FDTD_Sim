@@ -1,6 +1,6 @@
 # world dimensions
-world_width = 300
-world_height = 300
+world_width = 50
+world_height = 50
 duration = 200
 
 epsilon0 = 1  # permittivity
